@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import LoginPage from '@/sections/LoginPage';
-import HospitalPage from '@/sections/HospitalPage';
-import ParentPage from '@/sections/ParentPage';
-import TeacherPage from '@/sections/TeacherPage';
-import DataImporter from '@/components/DataImporter';
-import type { UserRole } from '@/types';
+import LoginPage from './sections/LoginPage';
+import HospitalPage from './sections/HospitalPage';
+import ParentPage from './sections/ParentPage';
+import TeacherPage from './sections/TeacherPage';
+import DataImporter from './components/DataImporter';
 
 export interface StudentData {
   id: string;
@@ -23,7 +22,7 @@ export interface StudentData {
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [userRole, setUserRole] = useState<'hospital' | 'parent' | 'teacher' | null>(null);
   const [studentData, setStudentData] = useState<StudentData[]>([]);
 
   useEffect(() => {
@@ -37,13 +36,20 @@ function App() {
     }
   }, []);
 
-  const handleLogin = (role: UserRole) => {
+  const handleLogin = (role: 'hospital' | 'parent' | 'teacher') => {
     setUserRole(role);
     setIsLoggedIn(true);
   };
 
-  const handleDataImport = (data: StudentData[]) => {
-    setStudentData(data);
+  const handleDataImport = (newData: StudentData[], mode: 'replace' | 'append') => {
+    let updatedData: StudentData[];
+    if (mode === 'append' && studentData.length > 0) {
+      updatedData = [...studentData, ...newData];
+    } else {
+      updatedData = newData;
+    }
+    setStudentData(updatedData);
+    localStorage.setItem('studentData', JSON.stringify(updatedData));
   };
 
   const handleLogout = () => {
@@ -58,7 +64,7 @@ function App() {
           <h1 className="text-2xl font-bold text-gray-900">学生心理健康数据管理系统</h1>
           <p className="text-gray-500 mt-2">请先导入学生数据</p>
         </div>
-        <DataImporter onDataImport={handleDataImport} hasData={false} />
+        <DataImporter onDataImport={handleDataImport} hasData={false} existingData={studentData} />
       </div>
     );
   }
